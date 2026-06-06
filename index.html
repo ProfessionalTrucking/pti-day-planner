@@ -1,0 +1,430 @@
+<!-- Instructor Day Planner — standalone, mobile-first, self-persisting -->
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<title>PTI Day Planner</title>
+<meta name="theme-color" content="#16294f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Day Planner">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+
+<style>
+  :root{
+    --paper:#eaeef6;          /* cool light background */
+    --card:#ffffff;
+    --ink:#16294f;            /* PTI navy — text, headers, buttons */
+    --ink-soft:#5f6b82;
+    --ink-faint:#9aa4b6;
+    --line:#d9e0ec;
+    --line-soft:#ebeff5;
+    --accent:#e3a900;         /* PTI gold — accents & fills */
+    --accent-soft:#f0d384;
+    --gold-deep:#a9790a;      /* readable gold for text on white */
+    --green:#16294f;          /* completed = navy (on brand) */
+    --shadow:0 1px 2px rgba(22,41,79,.07), 0 8px 24px rgba(22,41,79,.10);
+    --radius:18px;
+  }
+
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:"Hanken Grotesk", system-ui, sans-serif;
+    color:var(--ink);
+    background-color:var(--paper);
+    background-image:
+      radial-gradient(120% 80% at 50% -10%, rgba(255,255,255,.5), transparent 60%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap{max-width:480px; margin:0 auto; padding:22px 18px 64px;}
+
+  /* ---- Header ---- */
+  header{
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:20px;
+    animation:rise .5s ease both;
+  }
+  .nav{
+    width:42px; height:42px; flex:0 0 42px;
+    border:1px solid var(--line); background:var(--card);
+    border-radius:50%; color:var(--ink);
+    font-size:18px; cursor:pointer; display:grid; place-items:center;
+    transition:transform .15s ease, background .15s ease;
+  }
+  .nav:active{transform:scale(.9); background:var(--line-soft);}
+  .date-block{flex:1; text-align:center; line-height:1;}
+  .weekday{
+    font-family:"Fraunces", serif; font-weight:600;
+    font-size:30px; letter-spacing:-.01em; margin:0;
+    font-optical-sizing:auto;
+  }
+  .fulldate{
+    font-size:12.5px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--ink-soft); margin-top:7px; font-weight:600;
+  }
+  .today-pill{
+    display:inline-block; margin-top:9px; cursor:pointer;
+    font-size:10.5px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--gold-deep); font-weight:700;
+    border:1px solid var(--accent-soft); border-radius:20px;
+    padding:3px 11px; background:transparent;
+    transition:background .15s ease;
+  }
+  .today-pill:active{background:rgba(227,169,0,.14);}
+  .today-pill.hidden{visibility:hidden;}
+
+  /* ---- Cards ---- */
+  .card{
+    background:var(--card); border:1px solid var(--line);
+    border-radius:var(--radius); padding:18px 18px 16px;
+    margin-bottom:16px; box-shadow:var(--shadow);
+    animation:rise .55s ease both;
+  }
+  .card:nth-of-type(1){animation-delay:.04s;}
+  .card:nth-of-type(2){animation-delay:.10s;}
+  .card:nth-of-type(3){animation-delay:.16s;}
+  .card:nth-of-type(4){animation-delay:.22s;}
+
+  .label{
+    display:flex; align-items:baseline; justify-content:space-between;
+    margin:0 0 14px;
+  }
+  .label h2{
+    font-family:"Fraunces", serif; font-weight:600;
+    font-size:17px; margin:0; letter-spacing:.005em;
+  }
+  .label h2::before{
+    content:""; display:inline-block; width:4px; height:14px;
+    background:var(--accent); border-radius:2px; margin-right:9px; vertical-align:-1px;
+  }
+  .label .meta{font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-faint); font-weight:600;}
+
+  /* ---- Priorities ---- */
+  .prio{display:flex; align-items:center; gap:12px; padding:9px 0; border-bottom:1px solid var(--line-soft);}
+  .prio:last-child{border-bottom:0;}
+  .prio .num{
+    font-family:"Fraunces", serif; font-style:italic; font-weight:500;
+    color:var(--gold-deep); font-size:19px; width:18px; text-align:center; flex:0 0 18px;
+  }
+  .prio input{
+    flex:1; border:0; background:transparent; font:inherit; font-size:16px;
+    color:var(--ink); padding:4px 0; outline:none;
+  }
+  .prio input::placeholder{color:var(--ink-faint);}
+
+  /* ---- Schedule ---- */
+  .row{display:flex; align-items:stretch; min-height:40px;}
+  .row .time{
+    flex:0 0 58px; padding-top:11px; font-size:12px; font-weight:700;
+    color:var(--ink-soft); letter-spacing:.03em;
+  }
+  .row .time .ap{font-size:9.5px; color:var(--ink-faint); margin-left:1px;}
+  .row .slot{
+    flex:1; border-bottom:1px solid var(--line-soft); display:flex; align-items:center;
+  }
+  .row:last-child .slot{border-bottom:0;}
+  .row .slot input{
+    width:100%; border:0; background:transparent; font:inherit; font-size:15px;
+    color:var(--ink); padding:9px 0 8px; outline:none;
+  }
+  .row .slot input::placeholder{color:transparent;}
+  .row .slot input:not(:placeholder-shown){font-weight:500;}
+
+  /* ---- To-do ---- */
+  .todo{display:flex; align-items:center; gap:12px; padding:9px 0; border-bottom:1px solid var(--line-soft);}
+  .todo:last-of-type{border-bottom:0;}
+  .check{
+    flex:0 0 22px; width:22px; height:22px; border:1.8px solid var(--line);
+    border-radius:7px; cursor:pointer; display:grid; place-items:center;
+    background:var(--card); transition:all .15s ease; color:#fff;
+  }
+  .check svg{width:13px; height:13px; opacity:0; transform:scale(.5); transition:all .15s ease;}
+  .todo.done .check{background:var(--green); border-color:var(--green);}
+  .todo.done .check svg{opacity:1; transform:scale(1);}
+  .todo span.txt{flex:1; font-size:16px; line-height:1.35; word-break:break-word;}
+  .todo.done span.txt{color:var(--ink-faint); text-decoration:line-through; text-decoration-color:var(--accent-soft);}
+  .todo .del{
+    flex:0 0 auto; border:0; background:transparent; color:var(--ink-faint);
+    font-size:20px; line-height:1; cursor:pointer; padding:2px 4px; opacity:.55;
+  }
+  .todo .del:active{color:var(--accent); opacity:1;}
+
+  .add-row{display:flex; align-items:center; gap:10px; margin-top:12px; padding-top:13px; border-top:1px dashed var(--line);}
+  .add-row input{
+    flex:1; border:0; background:transparent; font:inherit; font-size:16px;
+    color:var(--ink); outline:none; padding:4px 0;
+  }
+  .add-row input::placeholder{color:var(--ink-faint);}
+  .add-btn{
+    flex:0 0 auto; border:0; background:var(--ink); color:#fff;
+    width:34px; height:34px; border-radius:10px; font-size:21px; line-height:1;
+    cursor:pointer; display:grid; place-items:center;
+    transition:transform .15s ease, opacity .15s ease;
+  }
+  .add-btn:active{transform:scale(.9);}
+  .empty-note{font-size:13.5px; color:var(--ink-faint); font-style:italic; padding:4px 0 2px;}
+
+  /* ---- Notes ---- */
+  textarea#notes{
+    width:100%; border:0; background:transparent; resize:none; outline:none;
+    font:inherit; font-size:16px; line-height:1.7; color:var(--ink);
+    min-height:90px;
+    background-image:repeating-linear-gradient(transparent, transparent 26px, var(--line-soft) 26px, var(--line-soft) 27px);
+    background-attachment:local;
+  }
+
+  /* ---- Footer save tag ---- */
+  .saved{
+    position:fixed; left:50%; bottom:18px; transform:translateX(-50%) translateY(20px);
+    background:var(--ink); color:var(--card); font-size:11px; letter-spacing:.1em;
+    text-transform:uppercase; font-weight:600; padding:7px 16px; border-radius:30px;
+    opacity:0; transition:all .3s ease; pointer-events:none; box-shadow:var(--shadow);
+  }
+  .saved.show{opacity:.96; transform:translateX(-50%) translateY(0);}
+
+  @keyframes rise{from{opacity:0; transform:translateY(12px);} to{opacity:1; transform:translateY(0);}}
+</style>
+
+<div class="wrap">
+  <header>
+    <button class="nav" id="prev" aria-label="Previous day">‹</button>
+    <div class="date-block">
+      <h1 class="weekday" id="weekday">—</h1>
+      <div class="fulldate" id="fulldate"></div>
+      <button class="today-pill" id="today">Back to today</button>
+    </div>
+    <button class="nav" id="next" aria-label="Next day">›</button>
+  </header>
+
+  <section class="card">
+    <div class="label"><h2>Today's Three</h2><span class="meta">Top priorities</span></div>
+    <div class="prio"><span class="num">1</span><input data-prio="0" placeholder="Most important thing…"></div>
+    <div class="prio"><span class="num">2</span><input data-prio="1" placeholder="Then this…"></div>
+    <div class="prio"><span class="num">3</span><input data-prio="2" placeholder="And this…"></div>
+  </section>
+
+  <section class="card">
+    <div class="label"><h2>Schedule</h2><span class="meta">Tap a line to fill</span></div>
+    <div id="schedule"></div>
+  </section>
+
+  <section class="card">
+    <div class="label"><h2>To-Do</h2><span class="meta" id="todocount"></span></div>
+    <div id="todos"></div>
+    <div class="add-row">
+      <input id="newtodo" placeholder="Add a task…" autocomplete="off">
+      <button class="add-btn" id="addtodo" aria-label="Add task">+</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="label"><h2>Notes</h2></div>
+    <textarea id="notes" placeholder="Reminders, follow-ups, anything on your mind…"></textarea>
+  </section>
+</div>
+
+<div class="saved" id="savedTag">Saved</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- storage layer (artifact window.storage, fallback to localStorage) ----------
+  var hasArtifactStore = (typeof window !== "undefined" && window.storage && typeof window.storage.get === "function");
+
+  async function rawGet(key){
+    if(hasArtifactStore){
+      try{ var r = await window.storage.get(key, false); return r ? r.value : null; }
+      catch(e){ return null; }
+    }
+    try{ return window.localStorage.getItem(key); }catch(e){ return null; }
+  }
+  async function rawSet(key, val){
+    if(hasArtifactStore){
+      try{ await window.storage.set(key, val, false); }catch(e){}
+      return;
+    }
+    try{ window.localStorage.setItem(key, val); }catch(e){}
+  }
+
+  // ---------- date helpers ----------
+  var WD = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  var MO = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  var current = new Date(); current.setHours(0,0,0,0);
+
+  function keyFor(d){
+    return "planner:" + d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+  }
+  function isToday(d){
+    var t = new Date(); return d.getFullYear()===t.getFullYear() && d.getMonth()===t.getMonth() && d.getDate()===t.getDate();
+  }
+  function freshDay(){ return { priorities:["","",""], schedule:{}, todos:[], notes:"" }; }
+
+  // ---------- state ----------
+  var data = freshDay();
+  var saveTimer = null;
+
+  // schedule hours — early start for road/range days through the evening
+  var HOURS = [];
+  for(var h=5; h<=20; h++) HOURS.push(h);
+
+  // ---------- elements ----------
+  var $ = function(id){ return document.getElementById(id); };
+  var schedEl = $("schedule"), todosEl = $("todos");
+
+  function hourLabel(h){
+    var ap = h<12 ? "AM" : "PM";
+    var hr = h%12; if(hr===0) hr=12;
+    return hr + "<span class='ap'>" + ap + "</span>";
+  }
+
+  function buildSchedule(){
+    var html = "";
+    HOURS.forEach(function(h){
+      html += "<div class='row'><div class='time'>" + hourLabel(h) + "</div>" +
+              "<div class='slot'><input data-hour='" + h + "' placeholder='.'></div></div>";
+    });
+    schedEl.innerHTML = html;
+    schedEl.querySelectorAll("input[data-hour]").forEach(function(inp){
+      inp.addEventListener("input", function(){
+        data.schedule[this.getAttribute("data-hour")] = this.value;
+        scheduleSave();
+      });
+    });
+  }
+
+  // ---------- render ----------
+  function renderHeader(){
+    $("weekday").textContent = WD[current.getDay()];
+    $("fulldate").textContent = MO[current.getMonth()] + " " + current.getDate() + ", " + current.getFullYear();
+    $("today").classList.toggle("hidden", isToday(current));
+  }
+
+  function renderDay(){
+    // priorities
+    document.querySelectorAll("input[data-prio]").forEach(function(inp){
+      inp.value = data.priorities[+inp.getAttribute("data-prio")] || "";
+    });
+    // schedule
+    schedEl.querySelectorAll("input[data-hour]").forEach(function(inp){
+      inp.value = data.schedule[inp.getAttribute("data-hour")] || "";
+    });
+    // notes
+    $("notes").value = data.notes || "";
+    renderTodos();
+  }
+
+  function renderTodos(){
+    var done = data.todos.filter(function(t){return t.done;}).length;
+    $("todocount").textContent = data.todos.length ? (done + " / " + data.todos.length + " done") : "";
+    if(!data.todos.length){
+      todosEl.innerHTML = "<div class='empty-note'>Nothing yet — add the first task below.</div>";
+      return;
+    }
+    var html = "";
+    data.todos.forEach(function(t){
+      html += "<div class='todo " + (t.done?"done":"") + "' data-id='" + t.id + "'>" +
+        "<div class='check' role='checkbox'><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg></div>" +
+        "<span class='txt'></span>" +
+        "<button class='del' aria-label='Delete'>×</button></div>";
+    });
+    todosEl.innerHTML = html;
+    // set text safely (avoid HTML injection from user input)
+    var spans = todosEl.querySelectorAll(".txt");
+    data.todos.forEach(function(t,i){ spans[i].textContent = t.text; });
+  }
+
+  // ---------- todo actions ----------
+  function addTodo(){
+    var inp = $("newtodo"); var v = inp.value.trim();
+    if(!v) return;
+    data.todos.push({ id: Date.now() + "-" + Math.random().toString(36).slice(2,7), text:v, done:false });
+    inp.value = ""; renderTodos(); scheduleSave(); inp.focus();
+  }
+
+  todosEl.addEventListener("click", function(e){
+    var item = e.target.closest(".todo"); if(!item) return;
+    var id = item.getAttribute("data-id");
+    var t = data.todos.find(function(x){return x.id===id;}); if(!t) return;
+    if(e.target.closest(".del")){
+      data.todos = data.todos.filter(function(x){return x.id!==id;});
+    } else if(e.target.closest(".check") || e.target.classList.contains("txt")){
+      t.done = !t.done;
+    } else return;
+    renderTodos(); scheduleSave();
+  });
+
+  $("addtodo").addEventListener("click", addTodo);
+  $("newtodo").addEventListener("keydown", function(e){ if(e.key==="Enter") addTodo(); });
+
+  // ---------- priorities + notes ----------
+  document.querySelectorAll("input[data-prio]").forEach(function(inp){
+    inp.addEventListener("input", function(){
+      data.priorities[+this.getAttribute("data-prio")] = this.value;
+      scheduleSave();
+    });
+  });
+  $("notes").addEventListener("input", function(){ data.notes = this.value; scheduleSave(); });
+
+  // ---------- save (debounced) ----------
+  function scheduleSave(){
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(commit, 450);
+  }
+  async function commit(){
+    await rawSet(keyFor(current), JSON.stringify(data));
+    var tag = $("savedTag");
+    tag.classList.add("show");
+    setTimeout(function(){ tag.classList.remove("show"); }, 1100);
+  }
+
+  // ---------- load a date ----------
+  async function loadDate(){
+    renderHeader();
+    var stored = await rawGet(keyFor(current));
+    if(stored){
+      try{ var p = JSON.parse(stored);
+        data = { priorities:(p.priorities||["","",""]).slice(0,3), schedule:p.schedule||{}, todos:p.todos||[], notes:p.notes||"" };
+        while(data.priorities.length<3) data.priorities.push("");
+      }catch(e){ data = freshDay(); }
+    } else { data = freshDay(); }
+    renderDay();
+  }
+
+  // ---------- navigation ----------
+  function shift(days){
+    clearTimeout(saveTimer); commit();         // flush current day before switching
+    current = new Date(current.getTime() + days*86400000); current.setHours(0,0,0,0);
+    loadDate();
+  }
+  $("prev").addEventListener("click", function(){ shift(-1); });
+  $("next").addEventListener("click", function(){ shift(1); });
+  $("today").addEventListener("click", function(){
+    clearTimeout(saveTimer); commit();
+    current = new Date(); current.setHours(0,0,0,0); loadDate();
+  });
+
+  // flush on background / close
+  document.addEventListener("visibilitychange", function(){ if(document.hidden){ clearTimeout(saveTimer); commit(); } });
+
+  // ---------- init ----------
+  buildSchedule();
+  loadDate();
+})();
+</script>
+
+<script>
+  // Register service worker for offline / installable app (no-op inside non-https previews)
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("service-worker.js").catch(function () {});
+    });
+  }
+</script>
