@@ -1,5 +1,5 @@
 /* PTI Day Planner — service worker */
-const CACHE = "pti-planner-v1";
+const CACHE = "pti-planner-v2";
 const SHELL = [
   "./",
   "./index.html",
