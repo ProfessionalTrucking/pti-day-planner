@@ -149,7 +149,7 @@
   .todo.done .check{background:var(--green); border-color:var(--green);}
   .todo.done .check svg{opacity:1; transform:scale(1);}
   .todo span.txt{flex:1; font-size:16px; line-height:1.35; word-break:break-word;}
-  .todo.done span.txt{color:var(--ink-faint); text-decoration:line-through; text-decoration-color:var(--accent-soft);}
+  .todo.done span.txt{color:var(--ink-soft); text-decoration:line-through; text-decoration-color:var(--accent); text-decoration-thickness:2.5px;}
   .todo .del{
     flex:0 0 auto; border:0; background:transparent; color:var(--ink-faint);
     font-size:20px; line-height:1; cursor:pointer; padding:2px 4px; opacity:.55;
@@ -355,9 +355,9 @@
     var t = data.todos.find(function(x){return x.id===id;}); if(!t) return;
     if(e.target.closest(".del")){
       data.todos = data.todos.filter(function(x){return x.id!==id;});
-    } else if(e.target.closest(".check") || e.target.classList.contains("txt")){
+    } else {
       t.done = !t.done;
-    } else return;
+    }
     renderTodos(); scheduleSave();
   });
 
