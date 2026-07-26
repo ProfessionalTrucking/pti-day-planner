@@ -1,5 +1,5 @@
 /* PTI Day Planner — service worker */
-const CACHE = "pti-planner-v2";
+const CACHE = "pti-planner-v3";
 const SHELL = [
   "./",
   "./index.html",
@@ -31,7 +31,7 @@ self.addEventListener("fetch", (event) => {
   // App navigations: serve cached index, fall back to network.
   if (req.mode === "navigate") {
     event.respondWith(
-      caches.match("./index.html").then((cached) => cached || fetch(req))
+      fetch(req).then((res) => { caches.open(CACHE).then((c) => c.put("./index.html", res.clone())); return res; }).catch(() => caches.match("./index.html"))
     );
     return;
   }
